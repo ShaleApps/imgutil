@@ -1,11 +1,11 @@
-package img_test
+package imgutil_test
 
 import (
 	"image"
 	"image/color"
 	"testing"
 
-	"github.com/ShaleApps/image-util"
+	"github.com/ShaleApps/imgutil"
 )
 
 func TestConversion(t *testing.T) {
@@ -14,6 +14,8 @@ func TestConversion(t *testing.T) {
 		makeImage(255, 0, 0), // red
 		makeImage(0, 255, 0), // green
 		makeImage(0, 0, 255), // blue
+		// test to see if greyscale works
+		makeImage(0, 0, 255), // blue
 	}
 
 	// colors that should be after conversion
@@ -21,35 +23,39 @@ func TestConversion(t *testing.T) {
 		makeImage(0, 0, 255), // to blue
 		makeImage(255, 0, 0), // to red
 		makeImage(0, 255, 0), // to green
+		// test to see if greyscale works
+		makeGray(0, 0, 255), // gray
 	}
 
-	red, err := img.HexToRBGA("FF0000")
+	red, err := imgutil.HexToRBGA("FF0000")
 	if err != nil {
 		t.Fatal(err)
 	}
-	blue, err := img.HexToRBGA("0000FF")
+	blue, err := imgutil.HexToRBGA("0000FF")
 	if err != nil {
 		t.Fatal(err)
 	}
-	green, err := img.HexToRBGA("00FF00")
+	green, err := imgutil.HexToRBGA("00FF00")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	convertedImgs := []image.Image{
-		img.ConvertImageColor(baseImgs[0], img.ColorConverter(red, blue)),
-		img.ConvertImageColor(baseImgs[1], img.ColorConverter(green, red)),
-		img.ConvertImageColor(baseImgs[2], img.ColorConverter(blue, green)),
+	goodConvertedImgs := []image.Image{
+		imgutil.ConvertImageColor(baseImgs[0], imgutil.ColorConverter(red, blue)),
+		imgutil.ConvertImageColor(baseImgs[1], imgutil.ColorConverter(green, red)),
+		imgutil.ConvertImageColor(baseImgs[2], imgutil.ColorConverter(blue, green)),
+		imgutil.ConvertImageColor(baseImgs[2], image.NewGray(image.Rect(0, 0, 1920, 1200)).ColorModel()),
 	}
 
 	badConvertedImgs := []image.Image{
-		img.ConvertImageColor(baseImgs[0], img.ColorConverter(blue, green)),
-		img.ConvertImageColor(baseImgs[1], img.ColorConverter(red, blue)),
-		img.ConvertImageColor(baseImgs[2], img.ColorConverter(green, red)),
+		imgutil.ConvertImageColor(baseImgs[0], imgutil.ColorConverter(blue, green)),
+		imgutil.ConvertImageColor(baseImgs[1], imgutil.ColorConverter(red, blue)),
+		imgutil.ConvertImageColor(baseImgs[2], imgutil.ColorConverter(green, red)),
+		imgutil.ConvertImageColor(baseImgs[2], imgutil.ColorConverter(green, red)),
 	}
 
 	for i, img := range expectedImgs {
-		if !compare(img, convertedImgs[i]) {
+		if !compare(img, goodConvertedImgs[i]) {
 			t.Fatalf("was supposed to pass: image %d did not match", i)
 		}
 		if compare(img, badConvertedImgs[i]) {
@@ -90,14 +96,14 @@ func TestHexConversion(t *testing.T) {
 	}
 
 	for _, color := range goodColors {
-		_, err := img.HexToRBGA(color)
+		_, err := imgutil.HexToRBGA(color)
 		if err != nil {
 			t.Fatalf("color %s failed when it was supposed to pass", color)
 		}
 	}
 
 	for _, badColor := range badColors {
-		_, err := img.HexToRBGA(badColor)
+		_, err := imgutil.HexToRBGA(badColor)
 		if err == nil {
 			t.Fatalf("color %s passed when it was supposed to fail", badColor)
 		}
@@ -105,7 +111,20 @@ func TestHexConversion(t *testing.T) {
 }
 
 func makeImage(r, g, b uint8) image.Image {
-	img := image.NewRGBA(image.Rect(0, 0, 1920, 1200))
+	rect := image.Rect(0, 0, 1920, 1200)
+	img := image.NewRGBA(rect)
+
+	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
+		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
+			img.Set(x, y, color.RGBA{r, g, b, 255})
+		}
+	}
+	return img
+}
+
+func makeGray(r, g, b uint8) image.Image {
+	rect := image.Rect(0, 0, 1920, 1200)
+	img := image.NewGray(rect)
 
 	for y := img.Rect.Min.Y; y < img.Rect.Max.Y; y++ {
 		for x := img.Rect.Min.X; x < img.Rect.Max.X; x++ {
