@@ -1,3 +1,7 @@
+// Package imgutil provides an easy way to take an image and convert any color in
+// it into another color. This also allows the conversion of a color image into
+// a gray scale image. Supports the image formats image supports such as png and
+// jpeg. This exclusively works with RGBA's from image.
 package imgutil
 
 import (
@@ -7,8 +11,8 @@ import (
 	"regexp"
 )
 
-// ConvertImageColor takes an image, a color.Color to remove with another color.Color
-// You can use HexToRBGA to get a color.Color via a hex code.
+// ConvertImageColor takes an image and a color model and returns a copy
+// of the image's color with provided replacement color.
 func ConvertImageColor(img image.Image, m color.Model) image.Image {
 	bounds := img.Bounds()
 	width, height := bounds.Max.X, bounds.Max.Y
@@ -23,8 +27,8 @@ func ConvertImageColor(img image.Image, m color.Model) image.Image {
 	return img2
 }
 
-// HexToRBGA returns a color.Color if it is provided with a hex code in the format
-// of #?[0-9a-fA-F]{6}
+// HexToRBGA returns a color.Color if it is provided with a hex code in the correct
+// format. https://en.wikipedia.org/wiki/Web_colors
 func HexToRBGA(hex1 string) (color.Color, error) {
 	validHex := regexp.MustCompile(`#?\b[0-9a-fA-F]{6}\b$`)
 	if !validHex.MatchString(hex1) {
@@ -41,7 +45,8 @@ func HexToRBGA(hex1 string) (color.Color, error) {
 	}, nil
 }
 
-// ColorConverter does stuff
+// ColorConverter compares a color to another. IF it matches, return
+// the new color.
 func ColorConverter(c1 color.Color, c2 color.Color) color.Model {
 	return color.ModelFunc(func(c color.Color) color.Color {
 		cR, cG, cB, cA := c.RGBA()
