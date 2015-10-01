@@ -61,7 +61,7 @@ func ColorConverter(c1 color.Color, c2 color.Color) color.Model {
 }
 
 // ResizeImage takes the dimensions of an image and then the image and
-// returns the image resized to that dimension. If either width or height
+// returns a new image resized to that dimension. If either width or height
 // is set as 0, the aspect ratio will be preserved and the counter part
 // will be used as a determining factor for the size.
 // Uses github.com/nfnt/resize
