@@ -60,7 +60,10 @@ func ColorConverter(c1 color.Color, c2 color.Color) color.Model {
 	})
 }
 
-// ResizeImage yes
+// ResizeImage takes the dimensions of an image and then the image and
+// returns the image resized to that dimension. if wither width or height
+// is set as 0, the aspect ratio will be preserved and the counter part
+// will be used as a determining factor for the size.
 func ResizeImage(maxWidth, maxHeight int, img image.Image) image.Image {
 	return resize.Resize(uint(maxWidth), uint(maxHeight), img, resize.NearestNeighbor)
 }
