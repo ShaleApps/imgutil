@@ -64,23 +64,6 @@ func TestConversion(t *testing.T) {
 	}
 }
 
-func compare(a, b image.Image) bool {
-	aBounds := a.Bounds()
-	bBounds := b.Bounds()
-	width, height := aBounds.Max.X, bBounds.Max.Y
-
-	for y := 0; y < height; y++ {
-		for x := 0; x < width; x++ {
-			aR, aG, aB, aA := a.At(x, y).RGBA()
-			bR, bG, bB, bA := b.At(x, y).RGBA()
-			if aR != bR || aG != bG || aB != bB || aA != bA {
-				return false
-			}
-		}
-	}
-	return true
-}
-
 func TestHexConversion(t *testing.T) {
 	goodColors := []string{
 		"FF0000",
@@ -110,6 +93,65 @@ func TestHexConversion(t *testing.T) {
 	}
 }
 
+func TestResize(t *testing.T) {
+	// We create an image but we don't care about the color, only it's size.
+	// The ratio of this base image is 1.6
+	baseImage := makeImage(255, 255, 255)
+
+	assortedRects := []image.Rectangle{
+		image.Rect(0, 0, 2560, 1600),
+		image.Rect(0, 0, 1680, 1050),
+		image.Rect(0, 0, 123, 908),
+	}
+
+	expectedImages := []image.Image{
+		image.NewRGBA(assortedRects[0]),
+		image.NewRGBA(assortedRects[1]),
+		image.NewRGBA(assortedRects[2]),
+	}
+
+	badImages := []image.Image{
+		image.NewRGBA(assortedRects[1]),
+		image.NewRGBA(assortedRects[2]),
+		image.NewRGBA(assortedRects[0]),
+	}
+
+	resultImages := []image.Image{
+		imgutil.ResizeImage(2560, 0, baseImage),
+		imgutil.ResizeImage(0, 1050, baseImage),
+		imgutil.ResizeImage(123, 908, baseImage),
+	}
+
+	for i, resultImg := range resultImages {
+		if !sameSize(resultImg, expectedImages[i]) {
+			t.Fatalf("resultImages[%d] does not match size for expectedImages[%d]", i, i)
+		}
+	}
+
+	for i, resultImg := range resultImages {
+		if sameSize(resultImg, badImages[i]) {
+			t.Fatalf("resultImages[%d] does match size for badImages[%d]", i, i)
+		}
+	}
+}
+
+func compare(a, b image.Image) bool {
+	aBounds := a.Bounds()
+	bBounds := b.Bounds()
+	width, height := aBounds.Max.X, bBounds.Max.Y
+
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			aR, aG, aB, aA := a.At(x, y).RGBA()
+			bR, bG, bB, bA := b.At(x, y).RGBA()
+			if aR != bR || aG != bG || aB != bB || aA != bA {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 func makeImage(r, g, b uint8) image.Image {
 	rect := image.Rect(0, 0, 1920, 1200)
 	img := image.NewRGBA(rect)
@@ -120,6 +162,18 @@ func makeImage(r, g, b uint8) image.Image {
 		}
 	}
 	return img
+}
+
+func sameSize(imgA, imgB image.Image) bool {
+	aBounds := imgA.Bounds()
+	bBounds := imgB.Bounds()
+	aHeight, aWidth := aBounds.Max.X, aBounds.Max.Y
+	bHeight, bWidth := bBounds.Max.X, bBounds.Max.Y
+
+	if aHeight != bHeight || aWidth != bWidth {
+		return false
+	}
+	return true
 }
 
 func makeGray(r, g, b uint8) image.Image {

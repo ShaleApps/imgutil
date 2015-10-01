@@ -9,6 +9,8 @@ import (
 	"image"
 	"image/color"
 	"regexp"
+
+	"github.com/nfnt/resize"
 )
 
 // ConvertImageColor takes an image and a color model and returns a copy
@@ -56,6 +58,11 @@ func ColorConverter(c1 color.Color, c2 color.Color) color.Model {
 		}
 		return c
 	})
+}
+
+// ResizeImage yes
+func ResizeImage(maxWidth, maxHeight int, img image.Image) image.Image {
+	return resize.Resize(uint(maxWidth), uint(maxHeight), img, resize.NearestNeighbor)
 }
 
 func hexDigitToInt(hex byte) byte {
