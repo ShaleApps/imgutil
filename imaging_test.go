@@ -31,7 +31,7 @@ func TestConversion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	blue, err := imgutil.HexToRBGA("0000FF")
+	blue, err := imgutil.HexToRBGA("0000Ff")
 	if err != nil {
 		t.Fatal(err)
 	}
